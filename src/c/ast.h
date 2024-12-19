@@ -21,7 +21,7 @@ typedef struct AstNode {
     union {
         // Number node
         int number_value;
-        
+
         // Binary operation node
         struct {
             OpType op;

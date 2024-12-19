@@ -19,11 +19,11 @@ AstNode* create_binary_node(OpType op, AstNode* left, AstNode* right) {
 
 void free_ast(AstNode* node) {
     if (node == NULL) return;
-    
+
     if (node->type == NODE_BINARY_OP) {
         free_ast(node->data.binary.left);
         free_ast(node->data.binary.right);
     }
-    
+
     free(node);
 }
