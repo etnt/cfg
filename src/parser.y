@@ -5,6 +5,9 @@
 /* Declare functions */
 int yylex(void);
 void yyerror(const char *s);
+
+/* Declare the global result variable */
+extern int result;
 %}
 
 /* Declare tokens */
@@ -26,6 +29,9 @@ void yyerror(const char *s);
 %%
 
 /* Grammar rules */
+input  : expr    { result = $1; }
+       ;
+
 expr   : term
        | expr PLUS term   { $$ = $1 + $3; }
        | expr MINUS term  { $$ = $1 - $3; }
@@ -48,8 +54,4 @@ factor : NUMBER
 /* Provide error handling */
 void yyerror(const char *s) {
     fprintf(stderr, "Error: %s\n", s);
-}
-
-int main() {
-    return yyparse();
 }

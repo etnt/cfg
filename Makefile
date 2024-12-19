@@ -10,7 +10,8 @@ LEX_FILE = src/lexer.l
 ZIG_FILE = src/main.zig
 PARSER_OBJECTS = src/parser.o
 LEXER_OBJECTS = src/lexer.o
-C_OBJECTS = $(LEXER_OBJECTS) $(PARSER_OBJECTS)
+INTERFACE_OBJECTS = src/parser_interface.o
+C_OBJECTS = $(LEXER_OBJECTS) $(PARSER_OBJECTS) $(INTERFACE_OBJECTS)
 EXECUTABLE = main
 
 # Bison and Flex generated files
@@ -25,7 +26,7 @@ generate: $(PARSER_C) $(PARSER_H) $(LEXER_C) $(C_OBJECTS)
 
 # Build the Zig executable and link with the C objects
 $(EXECUTABLE): $(C_OBJECTS) $(ZIG_FILE)
-	$(ZIG) build-exe $(ZIG_FILE) $(C_OBJECTS) -o $(EXECUTABLE)
+	$(ZIG) build-exe $(ZIG_FILE) $(C_OBJECTS) -femit-bin=$(EXECUTABLE)
 
 # Compile the Bison-generated C parser
 src/parser.o: $(PARSER_C)
@@ -34,6 +35,10 @@ src/parser.o: $(PARSER_C)
 # Compile the Flex-generated C lexer
 src/lexer.o: $(LEXER_C) $(PARSER_H)
 	$(CC) $(CFLAGS) -c $(LEXER_C) -o $@
+
+# Compile the parser interface
+src/parser_interface.o: src/parser_interface.c $(PARSER_H)
+	$(CC) $(CFLAGS) -c src/parser_interface.c -o $@
 
 # Generate parser.c and parser.tab.h from parser.y using Bison
 $(PARSER_C) $(PARSER_H): $(BISON_FILE)
