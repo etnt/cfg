@@ -1,52 +1,50 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "ast.h"
 
 /* Declare functions */
 int yylex(void);
 void yyerror(const char *s);
 
-/* Declare the global result variable */
-extern int result;
+/* Root of the AST */
+AstNode* ast_root = NULL;
 %}
 
 /* Declare tokens */
 %token PLUS MINUS STAR SLASH LPAREN RPAREN
+%token <intval> NUMBER
 
 /* Define precedence and associativity */
 %left PLUS MINUS
 %left STAR SLASH
 
-/* Declare a value type for the tokens (e.g., numbers) */
+/* Declare value types */
 %union {
     int intval;
+    struct AstNode* node;
 }
 
-/* Declare which tokens use the value type */
-%type <intval> expr term factor
-%token <intval> NUMBER
+/* Declare types for non-terminals */
+%type <node> expr term factor
 
 %%
 
-/* Grammar rules */
-input  : expr    { result = $1; }
+input  : expr    { ast_root = $1; }
        ;
 
-expr   : term
-       | expr PLUS term   { $$ = $1 + $3; }
-       | expr MINUS term  { $$ = $1 - $3; }
+expr   : term                    { $$ = $1; }
+       | expr PLUS term          { $$ = create_binary_node(OP_ADD, $1, $3); }
+       | expr MINUS term         { $$ = create_binary_node(OP_SUB, $1, $3); }
        ;
 
-term   : factor
-       | term STAR factor { $$ = $1 * $3; }
-       | term SLASH factor {
-             if ($3 == 0) { fprintf(stderr, "Division by zero\n"); exit(1); }
-             $$ = $1 / $3;
-         }
+term   : factor                  { $$ = $1; }
+       | term STAR factor        { $$ = create_binary_node(OP_MUL, $1, $3); }
+       | term SLASH factor       { $$ = create_binary_node(OP_DIV, $1, $3); }
        ;
 
-factor : NUMBER
-       | LPAREN expr RPAREN { $$ = $2; }
+factor : NUMBER                  { $$ = create_number_node($1); }
+       | LPAREN expr RPAREN      { $$ = $2; }
        ;
 
 %%
